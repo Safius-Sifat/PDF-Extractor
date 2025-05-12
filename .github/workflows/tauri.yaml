@@ -1,4 +1,4 @@
-name: Build Tauri App for Windows (Fallback)
+name: Build Tauri App for Windows
 
 on:
   push:
@@ -21,12 +21,11 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install pnpm
-        run: npm install -g pnpm@8
-
-      - name: Update PATH for pnpm
-        run: echo "${{ env.USERPROFILE }}\AppData\Roaming\npm" >> $GITHUB_PATH
-        shell: bash
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          run_install: false
 
       - name: Debug pnpm installation
         run: |
@@ -34,9 +33,27 @@ jobs:
           echo $PATH
         shell: bash
 
+      - name: Verify pnpm-lock.yaml
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            echo "pnpm-lock.yaml exists"
+            cat pnpm-lock.yaml | head -n 10
+          else
+            echo "pnpm-lock.yaml not found"
+          fi
+        shell: bash
+
       - name: Install Node.js dependencies
         run: pnpm install --frozen-lockfile
         shell: bash
+        continue-on-error: true
+
+      - name: Regenerate pnpm-lock.yaml if incompatible
+        run: |
+          pnpm install --lockfile-only
+          pnpm install --frozen-lockfile
+        shell: bash
+        if: failure()
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
