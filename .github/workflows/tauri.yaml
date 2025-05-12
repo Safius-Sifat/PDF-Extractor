@@ -56,8 +56,16 @@ jobs:
         if: failure()
 
       - name: Install WiX Toolset
-        run: choco install wixtoolset --version=3.14.1 -y
+        run: choco install wixtoolset --version=3.14.1 --force -y
         shell: powershell
+
+      - name: Debug WiX installation
+        run: |
+          dir "C:\Program Files (x86)\WiX Toolset v3.14\bin"
+          & "C:\Program Files (x86)\WiX Toolset v3.14\bin\light.exe" -version
+          dir "C:\Users\runneradmin\AppData\Local\tauri\WixTools314"
+        shell: powershell
+        continue-on-error: true
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
