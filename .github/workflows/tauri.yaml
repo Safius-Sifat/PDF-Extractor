@@ -20,19 +20,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: Install Node.js dependencies
-        run: npm ci
-        continue-on-error: true # Continue even if lock file is missing initially
-
-      - name: Generate package-lock.json if missing
-        run: npm install --package-lock-only
-        if: failure() # Run only if npm ci fails due to missing lock file
-
-      - name: Retry Install Node.js dependencies
-        run: npm ci
-        if: failure() # Retry npm ci after generating lock file
+        run: pnpm install --frozen-lockfile
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -56,11 +50,8 @@ jobs:
           choco install -y visualstudio2022buildtools
           choco install -y visualstudio2022-workload-vctools
 
-      - name: Install Tauri CLI
-        run: npm install -g @tauri-apps/cli
-
       - name: Build Tauri app
-        run: npm run tauri build -- --target x86_64-pc-windows-msvc
+        run: pnpm tauri build -- --target x86_64-pc-windows-msvc
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
