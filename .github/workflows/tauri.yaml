@@ -22,6 +22,18 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Install Node.js dependencies
+        run: npm ci
+        continue-on-error: true # Continue even if lock file is missing initially
+
+      - name: Generate package-lock.json if missing
+        run: npm install --package-lock-only
+        if: failure() # Run only if npm ci fails due to missing lock file
+
+      - name: Retry Install Node.js dependencies
+        run: npm ci
+        if: failure() # Retry npm ci after generating lock file
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -44,17 +56,8 @@ jobs:
           choco install -y visualstudio2022buildtools
           choco install -y visualstudio2022-workload-vctools
 
-      - name: Install Node.js dependencies
-        run: npm ci
-
       - name: Install Tauri CLI
         run: npm install -g @tauri-apps/cli
-
-      - name: Install clipboard
-        run: npm run tauri add clipboard-manager
-
-      - name: Install dialog
-        run: npm run tauri add dialog
 
       - name: Build Tauri app
         run: npm run tauri build -- --target x86_64-pc-windows-msvc
