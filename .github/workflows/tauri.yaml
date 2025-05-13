@@ -1,10 +1,11 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - main
-    workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.0)"
+        required: true
 
 jobs:
   release:
@@ -49,8 +50,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "App Name v__VERSION__"
+          tagName: v${{ github.event.inputs.version }}
+          releaseName: "PDF Info v${{ github.event.inputs.version }}"
           releaseBody: "See the assets to download and install this version."
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
